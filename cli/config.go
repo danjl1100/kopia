@@ -25,6 +25,26 @@ func deprecatedFlag(w io.Writer, help string) func(_ *kingpin.ParseContext) erro
 		return nil
 	}
 }
+func deprecatedFlagUsed(w io.Writer, flagDeprecated string, envDeprecated string, flag string, env string) {
+	fmt.Fprintf(w, "DEPRECATED: The '%v' flag ($%v) is deprecated, use '%v' ($%v) instead.\n", flagDeprecated, envDeprecated, flag, env) //nolint:errcheck
+}
+func deprecatedFlagConflict(w io.Writer, flagDeprecated string, envDeprecated string, flag string, env string) error {
+	fmt.Fprintf(w, "DEPRECATED: The '%v' flag ($%v) is deprecated, and '%v' ($%v) was also provided. Remove the deprecated flag (or environment variable).\n", flagDeprecated, envDeprecated, flag, env) //nolint:errcheck
+	return fmt.Errorf("duplicate arguments for %v", flag)
+}
+func mergeDeprecatedFlags(w io.Writer, valueDeprecated string, value string, flagDeprecated string, envDeprecated string, flag string, env string) (string, error) {
+	if valueDeprecated == "" {
+		return value, nil
+	} else {
+		if value == "" {
+			deprecatedFlagUsed(w, flagDeprecated, envDeprecated, flag, env)
+			return valueDeprecated, nil
+		} else {
+			err := deprecatedFlagConflict(w, flagDeprecated, envDeprecated, flag, env)
+			return "", err
+		}
+	}
+}
 
 func (c *App) onRepositoryFatalError(f func(err error)) {
 	c.onFatalErrorCallbacks = append(c.onFatalErrorCallbacks, f)
