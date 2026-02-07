@@ -21,7 +21,7 @@ var (
 	kopiaCurrentExe = os.Getenv("KOPIA_CURRENT_EXE")
 	kopia08exe      = os.Getenv("KOPIA_08_EXE")
 	kopia017exe     = os.Getenv("KOPIA_017_EXE")
-	kopia019exe     = os.Getenv("KOPIA_019_EXE")
+	kopia022exe     = os.Getenv("KOPIA_022_EXE")
 )
 
 func TestRepoCreatedWith08CanBeOpenedWithCurrent(t *testing.T) {
@@ -215,15 +215,15 @@ func TestServerControlArgs(t *testing.T) {
 	if kopiaCurrentExe == "" {
 		t.Skip()
 	}
-	if kopia019exe == "" {
+	if kopia022exe == "" {
 		t.Skip()
 	}
 
 	runnerCurrent := testenv.NewExeRunnerWithBinary(t, kopiaCurrentExe)
-	runner019 := testenv.NewExeRunnerWithBinary(t, kopia019exe)
+	runner022 := testenv.NewExeRunnerWithBinary(t, kopia022exe)
 
-	// create repository using v0.19 and start a server
-	e1 := testenv.NewCLITest(t, testenv.RepoFormatNotImportant, runner019)
+	// create repository using v0.22 and start a server
+	e1 := testenv.NewCLITest(t, testenv.RepoFormatNotImportant, runner022)
 	e1.RunAndExpectSuccess(t, "repo", "create", "filesystem", "--path", e1.RepoDir)
 	e1.RunAndExpectSuccess(t, "server", "users", "add", "foo@bar", "--user-password", "baz")
 
@@ -250,10 +250,10 @@ func TestServerControlArgs(t *testing.T) {
 
 	time.Sleep(3 * time.Second)
 
-	// check server status using v0.19 environment variables for control username/password
-	e2 := testenv.NewCLITest(t, testenv.RepoFormatNotImportant, runner019)
+	// check server status using v0.22 environment variables for control username/password
+	e2 := testenv.NewCLITest(t, testenv.RepoFormatNotImportant, runner022)
 
-	// set v0.19 `server` environment variables
+	// set v0.22 `server` environment variables
 	e2.Environment["KOPIA_SERVER_USERNAME"] = "admin-user"
 	e2.Environment["KOPIA_SERVER_PASSWORD"] = "admin-pwd"
 
@@ -272,7 +272,7 @@ func TestServerControlArgs(t *testing.T) {
 		"--server-cert-fingerprint", sp.SHA256Fingerprint,
 	)
 
-	// switch to post-0.19 environment variables,
+	// switch to post-0.22 environment variables,
 	// everything should still work
 	delete(e2.Environment, "KOPIA_SERVER_USERNAME")
 	delete(e2.Environment, "KOPIA_SERVER_PASSWORD")
@@ -293,15 +293,15 @@ func TestServerStartControlArgs(t *testing.T) {
 	if kopiaCurrentExe == "" {
 		t.Skip()
 	}
-	if kopia019exe == "" {
+	if kopia022exe == "" {
 		t.Skip()
 	}
 
 	runnerCurrent := testenv.NewExeRunnerWithBinary(t, kopiaCurrentExe)
-	runner019 := testenv.NewExeRunnerWithBinary(t, kopia019exe)
+	runner022 := testenv.NewExeRunnerWithBinary(t, kopia022exe)
 
-	// create repository using v0.19 and start a server
-	e1 := testenv.NewCLITest(t, testenv.RepoFormatNotImportant, runner019)
+	// create repository using v0.22 and start a server
+	e1 := testenv.NewCLITest(t, testenv.RepoFormatNotImportant, runner022)
 	e1.RunAndExpectSuccess(t, "repo", "create", "filesystem", "--path", e1.RepoDir)
 	e1.RunAndExpectSuccess(t, "server", "users", "add", "foo@bar", "--user-password", "baz")
 
@@ -316,7 +316,7 @@ func TestServerStartControlArgs(t *testing.T) {
 	tlsKey2 := filepath.Join(e1.ConfigDir, "tls2.key")
 	tlsKey3 := filepath.Join(e1.ConfigDir, "tls3.key")
 
-	// set v0.19 `server start` environment variables
+	// set v0.22 `server start` environment variables
 	e1.Environment["KOPIA_SERVER_CONTROL_USER"] = "admin-user"
 	e1.Environment["KOPIA_SERVER_CONTROL_PASSWORD"] = "admin-pwd"
 
@@ -337,10 +337,10 @@ func TestServerStartControlArgs(t *testing.T) {
 
 	time.Sleep(3 * time.Second)
 
-	// check server status using v0.19 environment variables for control username/password
-	e2 := testenv.NewCLITest(t, testenv.RepoFormatNotImportant, runner019)
+	// check server status using v0.22 environment variables for control username/password
+	e2 := testenv.NewCLITest(t, testenv.RepoFormatNotImportant, runner022)
 
-	// set v0.19 `server` environment variables
+	// set v0.22 `server` environment variables
 	e2.Environment["KOPIA_SERVER_USERNAME"] = "admin-user"
 	e2.Environment["KOPIA_SERVER_PASSWORD"] = "admin-pwd"
 
@@ -373,7 +373,7 @@ func TestServerStartControlArgs(t *testing.T) {
 
 	time.Sleep(3 * time.Second)
 
-	// check server status using v0.19 environment variables for control username/password
+	// check server status using v0.22 environment variables for control username/password
 	// everything should still work
 	e2.RunAndExpectSuccess(t,
 		"server", "status",
@@ -381,7 +381,7 @@ func TestServerStartControlArgs(t *testing.T) {
 		"--server-cert-fingerprint", spExeNewEnvPrev.SHA256Fingerprint,
 	)
 
-	// restart server using post-0.19 `server start` environment variables
+	// restart server using post-0.22 `server start` environment variables
 	killServer()
 	delete(e1.Environment, "KOPIA_SERVER_CONTROL_USER")
 	delete(e1.Environment, "KOPIA_SERVER_CONTROL_PASSWORD")
@@ -406,7 +406,7 @@ func TestServerStartControlArgs(t *testing.T) {
 
 	time.Sleep(3 * time.Second)
 
-	// check server status using v0.19 environment variables for control username/password
+	// check server status using v0.22 environment variables for control username/password
 	// everything should still work
 	e2.RunAndExpectSuccess(t,
 		"server", "status",
