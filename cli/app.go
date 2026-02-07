@@ -84,10 +84,9 @@ type appServices interface {
 	repositoryReaderAction(act func(ctx context.Context, rep repo.Repository) error) func(ctx *kingpin.ParseContext) error
 	repositoryWriterAction(act func(ctx context.Context, rep repo.RepositoryWriter) error) func(ctx *kingpin.ParseContext) error
 	repositoryHintAction(act func(ctx context.Context, rep repo.Repository) []string) func() []string
-	maybeRepositoryAction(act func(ctx context.Context, rep repo.Repository) error, mode repositoryAccessMode) func(ctx *kingpin.ParseContext) error
-	baseActionWithContext(act func(ctx context.Context, app *App) error) func(ctx *kingpin.ParseContext) error
+	baseActionWithContext(act func(ctx context.Context) error) func(ctx *kingpin.ParseContext) error
 	openRepository(ctx context.Context, mustBeConnected bool) (repo.Repository, error)
-	advancedCommand(ctx context.Context)
+	dangerousCommand()
 	repositoryConfigFileName() string
 	getProgress() *cliProgress
 	getRestoreProgress() RestoreProgress
@@ -307,7 +306,6 @@ func (c *App) setup(app *kingpin.Application) {
 
 	app.Flag("strict-args", "Error when any deprecated flags or environment variables are used").Envar(c.EnvName("KOPIA_STRICT_ARGS")).BoolVar(&c.strictArgs)
 
-	c.pf.setup(app)
 	c.progress.setup(c, app)
 
 	c.blob.setup(c, app)
@@ -530,22 +528,14 @@ type repositoryAccessMode struct {
 	allowMaintenance bool
 }
 
-func (c *App) baseActionWithContext(act func(ctx context.Context, app *App) error) func(ctx *kingpin.ParseContext) error {
+func (c *App) baseActionWithContext(act func(ctx context.Context) error) func(ctx *kingpin.ParseContext) error {
 	return func(kpc *kingpin.ParseContext) error {
-		return c.runAppWithContext(kpc.SelectedCommand, func(ctx context.Context) error {
-			return c.pf.withProfiling(func() error {
-				if c.dumpAllocatorStats {
-					defer gather.DumpStats(ctx)
-				}
-
-				return act(ctx, c)
-			})
-		})
+		return c.runAppWithContext(kpc.SelectedCommand, act)
 	}
 }
 
 func (c *App) repositoryAction(act func(ctx context.Context, rep repo.Repository) error, mode repositoryAccessMode) func(ctx *kingpin.ParseContext) error {
-	return c.baseActionWithContext(func(ctx context.Context, _ *App) error {
+	return c.baseActionWithContext(func(ctx context.Context) error {
 		const requireConnected = true
 
 		rep, err := c.openRepository(ctx, requireConnected)

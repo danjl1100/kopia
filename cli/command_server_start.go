@@ -220,7 +220,8 @@ func (c *commandServerStart) initRepositoryPossiblyAsync(ctx context.Context, sr
 	return nil
 }
 
-func (c *commandServerStart) run(ctx context.Context, app *App) (reterr error) {
+func (c *commandServerStart) run(ctx context.Context) (reterr error) {
+	app := c.svc.(*App)
 	opts, err := c.serverStartOptions(ctx, app)
 	if err != nil {
 		return err
